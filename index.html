@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>幼儿园英语单词卡片学习系统</title>
+    <!-- 直接内联Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* 确保所有样式都内联 */
         .card-container {
             perspective: 1000px;
             width: 320px;
@@ -226,9 +228,14 @@
             margin-bottom: 20px;
             border-radius: 8px;
         }
+        
+        /* 确保body有最小高度 */
+        body {
+            min-height: 100vh;
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen py-8">
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 py-8">
     <div class="max-w-lg mx-auto bg-white rounded-2xl shadow-lg overflow-hidden p-6">
         <div class="header">
             <h1 class="text-3xl font-bold mb-2">
@@ -284,10 +291,10 @@
         
         <!-- 操作按钮 -->
         <div class="flex justify-center space-x-6 mb-8">
-            <button id="know-btn" class="button know-btn">
+            <button id="know-btn" class="button know-btn" disabled>
                 <i class="fas fa-check"></i> 认识
             </button>
-            <button id="dont-know-btn" class="button dont-know-btn">
+            <button id="dont-know-btn" class="button dont-know-btn" disabled>
                 <i class="fas fa-times"></i> 不认识
             </button>
         </div>
@@ -364,31 +371,20 @@
 
         // 语音合成函数
         function speakText(text, rate = 0.8) {
-            // 检查浏览器是否支持语音合成
             if ('speechSynthesis' in window) {
-                // 停止任何正在进行的语音
                 window.speechSynthesis.cancel();
-                
-                // 创建新的语音实例
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'en-US';
-                utterance.rate = rate; // 语速稍慢，适合幼儿
-                utterance.pitch = 1.2; // 音调稍高，更友好
-                
-                // 播放语音
+                utterance.rate = rate;
+                utterance.pitch = 1.2;
                 window.speechSynthesis.speak(utterance);
                 
-                // 添加脉冲动画效果
                 if (text === getCurrentWord().word) {
                     voiceWordBtn.classList.add('pulse');
-                    setTimeout(() => {
-                        voiceWordBtn.classList.remove('pulse');
-                    }, 1000);
+                    setTimeout(() => voiceWordBtn.classList.remove('pulse'), 1000);
                 } else {
                     voiceExampleBtn.classList.add('pulse');
-                    setTimeout(() => {
-                        voiceExampleBtn.classList.remove('pulse');
-                    }, 1000);
+                    setTimeout(() => voiceExampleBtn.classList.remove('pulse'), 1000);
                 }
             } else {
                 alert('您的浏览器不支持语音合成功能，请使用Chrome、Edge或Safari浏览器。');
@@ -397,23 +393,15 @@
 
         // 初始化应用
         function initApp() {
-            // 重置状态
             state.currentIndex = 0;
             state.masteredWords = [];
             state.reviewWords = [];
             state.isReviewMode = false;
             state.reviewIndex = 0;
             
-            // 显示第一个单词
             showCurrentWord();
-            
-            // 更新统计信息
             updateStats();
-            
-            // 隐藏完成消息
             completedMessage.style.display = 'none';
-            
-            // 禁用按钮直到卡片翻转
             knowBtn.disabled = true;
             dontKnowBtn.disabled = true;
         }
@@ -421,24 +409,17 @@
         // 显示当前单词
         function showCurrentWord() {
             const currentWord = getCurrentWord();
-            
             wordFront.textContent = currentWord.word;
             emojiFront.textContent = currentWord.emoji;
             meaningBack.textContent = currentWord.meaning;
             exampleBack.textContent = currentWord.example;
             animalImage.src = currentWord.image;
-            
-            // 确保卡片显示正面
             card.classList.remove('flipped');
         }
 
         // 获取当前单词
         function getCurrentWord() {
-            if (state.isReviewMode) {
-                return state.reviewWords[state.reviewIndex];
-            } else {
-                return wordData[state.currentIndex];
-            }
+            return state.isReviewMode ? state.reviewWords[state.reviewIndex] : wordData[state.currentIndex];
         }
 
         // 更新统计信息
@@ -448,12 +429,10 @@
             const review = state.reviewWords.length;
             const remaining = totalWords - mastered - review;
             
-            // 更新数字显示
             remainingCount.textContent = remaining;
             masteredCount.textContent = mastered;
             reviewCount.textContent = review;
             
-            // 更新进度条
             const progress = ((mastered + review) / totalWords) * 100;
             progressFill.style.width = `${progress}%`;
             progressText.textContent = `${Math.round(progress)}%`;
@@ -462,37 +441,23 @@
         // 处理"认识"按钮点击
         function handleKnow() {
             const currentWord = getCurrentWord();
-            
-            // 添加庆祝效果
             knowBtn.classList.add('celebrate');
-            setTimeout(() => {
-                knowBtn.classList.remove('celebrate');
-            }, 500);
+            setTimeout(() => knowBtn.classList.remove('celebrate'), 500);
             
             if (state.isReviewMode) {
-                // 复习模式：从复习列表中移除
                 state.reviewWords.splice(state.reviewIndex, 1);
-                
-                // 如果复习列表为空，切换到正常模式
                 if (state.reviewWords.length === 0) {
                     state.isReviewMode = false;
                     checkCompletion();
                 } else {
-                    // 保持在复习模式，更新索引
                     state.reviewIndex = state.reviewIndex % state.reviewWords.length;
                 }
             } else {
-                // 正常模式：标记为已掌握
                 if (!state.masteredWords.includes(currentWord)) {
                     state.masteredWords.push(currentWord);
                 }
-                
-                // 移动到下一个单词
                 state.currentIndex++;
-                
-                // 检查是否完成所有单词
                 if (state.currentIndex >= wordData.length) {
-                    // 切换到复习模式
                     if (state.reviewWords.length > 0) {
                         state.isReviewMode = true;
                         state.reviewIndex = 0;
@@ -502,11 +467,8 @@
                 }
             }
             
-            // 显示下一个单词
             showCurrentWord();
             updateStats();
-            
-            // 禁用按钮直到卡片再次翻转
             knowBtn.disabled = true;
             dontKnowBtn.disabled = true;
         }
@@ -516,30 +478,20 @@
             const currentWord = getCurrentWord();
             
             if (state.isReviewMode) {
-                // 复习模式：保持单词在复习列表中，移动到下一个
                 state.reviewIndex = (state.reviewIndex + 1) % state.reviewWords.length;
             } else {
-                // 正常模式：添加到复习列表
                 if (!state.reviewWords.includes(currentWord) && !state.masteredWords.includes(currentWord)) {
                     state.reviewWords.push(currentWord);
                 }
-                
-                // 移动到下一个单词
                 state.currentIndex++;
-                
-                // 检查是否完成所有单词
                 if (state.currentIndex >= wordData.length) {
-                    // 切换到复习模式
                     state.isReviewMode = true;
                     state.reviewIndex = 0;
                 }
             }
             
-            // 显示下一个单词
             showCurrentWord();
             updateStats();
-            
-            // 禁用按钮直到卡片再次翻转
             knowBtn.disabled = true;
             dontKnowBtn.disabled = true;
         }
@@ -550,19 +502,13 @@
                 completedMessage.style.display = 'block';
                 knowBtn.disabled = true;
                 dontKnowBtn.disabled = true;
-                
-                // 播放完成祝贺语音
-                setTimeout(() => {
-                    speakText("Congratulations! You have learned all the words!", 0.7);
-                }, 500);
+                setTimeout(() => speakText("Congratulations! You have learned all the words!", 0.7), 500);
             }
         }
 
         // 事件监听器
         card.addEventListener('click', function() {
             card.classList.toggle('flipped');
-            
-            // 启用按钮
             if (card.classList.contains('flipped')) {
                 knowBtn.disabled = false;
                 dontKnowBtn.disabled = false;
@@ -572,17 +518,8 @@
         knowBtn.addEventListener('click', handleKnow);
         dontKnowBtn.addEventListener('click', handleDontKnow);
         restartBtn.addEventListener('click', initApp);
-
-        // 语音按钮事件
-        voiceWordBtn.addEventListener('click', function() {
-            const currentWord = getCurrentWord();
-            speakText(currentWord.word);
-        });
-
-        voiceExampleBtn.addEventListener('click', function() {
-            const currentWord = getCurrentWord();
-            speakText(currentWord.example);
-        });
+        voiceWordBtn.addEventListener('click', () => speakText(getCurrentWord().word));
+        voiceExampleBtn.addEventListener('click', () => speakText(getCurrentWord().example));
 
         // 初始化应用
         initApp();
