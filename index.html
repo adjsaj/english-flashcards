@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幼儿园英语单词卡片学习系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .card-container {
+            perspective: 1000px;
+            width: 320px;
+            height: 280px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s;
+            cursor: pointer;
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .card-front {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            color: white;
+        }
+        
+        .card-back {
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            color: #1e293b;
+            transform: rotateY(180deg);
+            text-align: center;
+        }
+        
+        .word {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .meaning {
+            font-size: 36px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .example {
+            font-size: 24px;
+            font-style: italic;
+            color: #475569;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #e2e8f0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+            background: linear-gradient(90deg, #4ade80, #22d3ee);
+        }
+        
+        .completed-message {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #4ade80, #22d3ee);
+            color: white;
+            border-radius: 20px;
+            margin-top: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .emoji {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+        
+        .animal-image {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            margin-bottom: 15px;
+        }
+        
+        .button {
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        
+        .button:active {
+            transform: translateY(1px);
+        }
+        
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .know-btn {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: white;
+        }
+        
+        .dont-know-btn {
+            background: linear-gradient(135deg, #f87171, #ef4444);
+            color: white;
+        }
+        
+        .voice-btn {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 12px 20px;
+            font-size: 18px;
+        }
+        
+        .stat-box {
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 16px;
+            color: #64748b;
+        }
+        
+        .celebrate {
+            animation: celebrate 0.5s ease infinite alternate;
+        }
+        
+        @keyframes celebrate {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        
+        .bounce {
+            animation: bounce 0.5s ease infinite alternate;
+        }
+        
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+        
+        .pulse {
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .voice-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .instructions {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen py-8">
+    <div class="max-w-lg mx-auto bg-white rounded-2xl shadow-lg overflow-hidden p-6">
+        <div class="header">
+            <h1 class="text-3xl font-bold mb-2">
+                <i class="fas fa-star text-yellow-400"></i>
+                幼儿园英语单词学习
+                <i class="fas fa-star text-yellow-400"></i>
+            </h1>
+            <p class="text-lg">点击卡片查看单词意思，点击喇叭听发音</p>
+        </div>
+        
+        <div class="instructions">
+            <p class="font-bold text-blue-700 mb-1">使用方法：</p>
+            <p>1. 点击卡片查看单词的中文意思和例句</p>
+            <p>2. 点击"听单词"或"听例句"按钮听发音</p>
+            <p>3. 根据是否认识单词点击"认识"或"不认识"按钮</p>
+        </div>
+        
+        <!-- 进度条 -->
+        <div class="mb-8">
+            <div class="flex justify-between text-lg text-gray-600 mb-2">
+                <span>学习进度</span>
+                <span id="progress-text">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <!-- 语音控制 -->
+        <div class="voice-controls">
+            <button id="voice-word-btn" class="button voice-btn">
+                <i class="fas fa-volume-up"></i> 听单词
+            </button>
+            <button id="voice-example-btn" class="button voice-btn">
+                <i class="fas fa-volume-up"></i> 听例句
+            </button>
+        </div>
+        
+        <!-- 单词卡片 -->
+        <div class="card-container mb-8">
+            <div id="card" class="card">
+                <div class="card-face card-front">
+                    <div id="emoji-front" class="emoji">🐱</div>
+                    <div id="word-front" class="word">cat</div>
+                </div>
+                <div class="card-face card-back">
+                    <img id="animal-image" src="https://cdn-icons-png.flaticon.com/512/220/220124.png" alt="动物图片" class="animal-image">
+                    <div id="meaning-back" class="meaning">猫</div>
+                    <div id="example-back" class="example">I have a cute cat.</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="flex justify-center space-x-6 mb-8">
+            <button id="know-btn" class="button know-btn">
+                <i class="fas fa-check"></i> 认识
+            </button>
+            <button id="dont-know-btn" class="button dont-know-btn">
+                <i class="fas fa-times"></i> 不认识
+            </button>
+        </div>
+        
+        <!-- 统计面板 -->
+        <div class="grid grid-cols-3 gap-4 text-center mb-8">
+            <div class="stat-box bg-blue-50">
+                <div class="stat-number text-blue-600" id="remaining-count">10</div>
+                <div class="stat-label">剩余单词</div>
+            </div>
+            <div class="stat-box bg-green-50">
+                <div class="stat-number text-green-600" id="mastered-count">0</div>
+                <div class="stat-label">已掌握</div>
+            </div>
+            <div class="stat-box bg-yellow-50">
+                <div class="stat-number text-yellow-600" id="review-count">0</div>
+                <div class="stat-label">需复习</div>
+            </div>
+        </div>
+        
+        <!-- 完成消息 -->
+        <div id="completed-message" class="completed-message">
+            <div class="emoji bounce">🎉</div>
+            <h2 class="text-2xl font-bold mb-2">太棒了！</h2>
+            <p class="text-xl">你已经学会了所有单词！</p>
+            <button id="restart-btn" class="button know-btn mt-4">
+                <i class="fas fa-redo"></i> 再学一遍
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 幼儿园级别单词数据
+        const wordData = [
+            { word: "cat", meaning: "猫", example: "I have a cute cat.", emoji: "🐱", image: "https://cdn-icons-png.flaticon.com/512/220/220124.png" },
+            { word: "dog", meaning: "狗", example: "The dog is running.", emoji: "🐶", image: "https://cdn-icons-png.flaticon.com/512/220/220124.png" },
+            { word: "apple", meaning: "苹果", example: "I eat an apple.", emoji: "🍎", image: "https://cdn-icons-png.flaticon.com/512/415/415733.png" },
+            { word: "ball", meaning: "球", example: "Let's play with the ball.", emoji: "⚽", image: "https://cdn-icons-png.flaticon.com/512/2331/2331966.png" },
+            { word: "sun", meaning: "太阳", example: "The sun is shining.", emoji: "☀️", image: "https://cdn-icons-png.flaticon.com/512/3223/3223007.png" },
+            { word: "car", meaning: "汽车", example: "My dad drives a car.", emoji: "🚗", image: "https://cdn-icons-png.flaticon.com/512/2331/2331966.png" },
+            { word: "book", meaning: "书", example: "I read a book.", emoji: "📚", image: "https://cdn-icons-png.flaticon.com/512/2331/2331966.png" },
+            { word: "house", meaning: "房子", example: "This is my house.", emoji: "🏠", image: "https://cdn-icons-png.flaticon.com/512/2331/2331966.png" },
+            { word: "tree", meaning: "树", example: "The tree is tall.", emoji: "🌳", image: "https://cdn-icons-png.flaticon.com/512/2331/2331966.png" },
+            { word: "water", meaning: "水", example: "I drink water.", emoji: "💧", image: "https://cdn-icons-png.flaticon.com/512/2331/2331966.png" }
+        ];
+
+        // 应用状态
+        let state = {
+            currentIndex: 0,
+            masteredWords: [],
+            reviewWords: [],
+            isReviewMode: false,
+            reviewIndex: 0
+        };
+
+        // DOM元素
+        const card = document.getElementById('card');
+        const wordFront = document.getElementById('word-front');
+        const emojiFront = document.getElementById('emoji-front');
+        const meaningBack = document.getElementById('meaning-back');
+        const exampleBack = document.getElementById('example-back');
+        const animalImage = document.getElementById('animal-image');
+        const knowBtn = document.getElementById('know-btn');
+        const dontKnowBtn = document.getElementById('dont-know-btn');
+        const voiceWordBtn = document.getElementById('voice-word-btn');
+        const voiceExampleBtn = document.getElementById('voice-example-btn');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const remainingCount = document.getElementById('remaining-count');
+        const masteredCount = document.getElementById('mastered-count');
+        const reviewCount = document.getElementById('review-count');
+        const completedMessage = document.getElementById('completed-message');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // 语音合成函数
+        function speakText(text, rate = 0.8) {
+            // 检查浏览器是否支持语音合成
+            if ('speechSynthesis' in window) {
+                // 停止任何正在进行的语音
+                window.speechSynthesis.cancel();
+                
+                // 创建新的语音实例
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = rate; // 语速稍慢，适合幼儿
+                utterance.pitch = 1.2; // 音调稍高，更友好
+                
+                // 播放语音
+                window.speechSynthesis.speak(utterance);
+                
+                // 添加脉冲动画效果
+                if (text === getCurrentWord().word) {
+                    voiceWordBtn.classList.add('pulse');
+                    setTimeout(() => {
+                        voiceWordBtn.classList.remove('pulse');
+                    }, 1000);
+                } else {
+                    voiceExampleBtn.classList.add('pulse');
+                    setTimeout(() => {
+                        voiceExampleBtn.classList.remove('pulse');
+                    }, 1000);
+                }
+            } else {
+                alert('您的浏览器不支持语音合成功能，请使用Chrome、Edge或Safari浏览器。');
+            }
+        }
+
+        // 初始化应用
+        function initApp() {
+            // 重置状态
+            state.currentIndex = 0;
+            state.masteredWords = [];
+            state.reviewWords = [];
+            state.isReviewMode = false;
+            state.reviewIndex = 0;
+            
+            // 显示第一个单词
+            showCurrentWord();
+            
+            // 更新统计信息
+            updateStats();
+            
+            // 隐藏完成消息
+            completedMessage.style.display = 'none';
+            
+            // 禁用按钮直到卡片翻转
+            knowBtn.disabled = true;
+            dontKnowBtn.disabled = true;
+        }
+
+        // 显示当前单词
+        function showCurrentWord() {
+            const currentWord = getCurrentWord();
+            
+            wordFront.textContent = currentWord.word;
+            emojiFront.textContent = currentWord.emoji;
+            meaningBack.textContent = currentWord.meaning;
+            exampleBack.textContent = currentWord.example;
+            animalImage.src = currentWord.image;
+            
+            // 确保卡片显示正面
+            card.classList.remove('flipped');
+        }
+
+        // 获取当前单词
+        function getCurrentWord() {
+            if (state.isReviewMode) {
+                return state.reviewWords[state.reviewIndex];
+            } else {
+                return wordData[state.currentIndex];
+            }
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const totalWords = wordData.length;
+            const mastered = state.masteredWords.length;
+            const review = state.reviewWords.length;
+            const remaining = totalWords - mastered - review;
+            
+            // 更新数字显示
+            remainingCount.textContent = remaining;
+            masteredCount.textContent = mastered;
+            reviewCount.textContent = review;
+            
+            // 更新进度条
+            const progress = ((mastered + review) / totalWords) * 100;
+            progressFill.style.width = `${progress}%`;
+            progressText.textContent = `${Math.round(progress)}%`;
+        }
+
+        // 处理"认识"按钮点击
+        function handleKnow() {
+            const currentWord = getCurrentWord();
+            
+            // 添加庆祝效果
+            knowBtn.classList.add('celebrate');
+            setTimeout(() => {
+                knowBtn.classList.remove('celebrate');
+            }, 500);
+            
+            if (state.isReviewMode) {
+                // 复习模式：从复习列表中移除
+                state.reviewWords.splice(state.reviewIndex, 1);
+                
+                // 如果复习列表为空，切换到正常模式
+                if (state.reviewWords.length === 0) {
+                    state.isReviewMode = false;
+                    checkCompletion();
+                } else {
+                    // 保持在复习模式，更新索引
+                    state.reviewIndex = state.reviewIndex % state.reviewWords.length;
+                }
+            } else {
+                // 正常模式：标记为已掌握
+                if (!state.masteredWords.includes(currentWord)) {
+                    state.masteredWords.push(currentWord);
+                }
+                
+                // 移动到下一个单词
+                state.currentIndex++;
+                
+                // 检查是否完成所有单词
+                if (state.currentIndex >= wordData.length) {
+                    // 切换到复习模式
+                    if (state.reviewWords.length > 0) {
+                        state.isReviewMode = true;
+                        state.reviewIndex = 0;
+                    } else {
+                        checkCompletion();
+                    }
+                }
+            }
+            
+            // 显示下一个单词
+            showCurrentWord();
+            updateStats();
+            
+            // 禁用按钮直到卡片再次翻转
+            knowBtn.disabled = true;
+            dontKnowBtn.disabled = true;
+        }
+
+        // 处理"不认识"按钮点击
+        function handleDontKnow() {
+            const currentWord = getCurrentWord();
+            
+            if (state.isReviewMode) {
+                // 复习模式：保持单词在复习列表中，移动到下一个
+                state.reviewIndex = (state.reviewIndex + 1) % state.reviewWords.length;
+            } else {
+                // 正常模式：添加到复习列表
+                if (!state.reviewWords.includes(currentWord) && !state.masteredWords.includes(currentWord)) {
+                    state.reviewWords.push(currentWord);
+                }
+                
+                // 移动到下一个单词
+                state.currentIndex++;
+                
+                // 检查是否完成所有单词
+                if (state.currentIndex >= wordData.length) {
+                    // 切换到复习模式
+                    state.isReviewMode = true;
+                    state.reviewIndex = 0;
+                }
+            }
+            
+            // 显示下一个单词
+            showCurrentWord();
+            updateStats();
+            
+            // 禁用按钮直到卡片再次翻转
+            knowBtn.disabled = true;
+            dontKnowBtn.disabled = true;
+        }
+
+        // 检查是否完成所有学习
+        function checkCompletion() {
+            if (state.masteredWords.length === wordData.length && state.reviewWords.length === 0) {
+                completedMessage.style.display = 'block';
+                knowBtn.disabled = true;
+                dontKnowBtn.disabled = true;
+                
+                // 播放完成祝贺语音
+                setTimeout(() => {
+                    speakText("Congratulations! You have learned all the words!", 0.7);
+                }, 500);
+            }
+        }
+
+        // 事件监听器
+        card.addEventListener('click', function() {
+            card.classList.toggle('flipped');
+            
+            // 启用按钮
+            if (card.classList.contains('flipped')) {
+                knowBtn.disabled = false;
+                dontKnowBtn.disabled = false;
+            }
+        });
+
+        knowBtn.addEventListener('click', handleKnow);
+        dontKnowBtn.addEventListener('click', handleDontKnow);
+        restartBtn.addEventListener('click', initApp);
+
+        // 语音按钮事件
+        voiceWordBtn.addEventListener('click', function() {
+            const currentWord = getCurrentWord();
+            speakText(currentWord.word);
+        });
+
+        voiceExampleBtn.addEventListener('click', function() {
+            const currentWord = getCurrentWord();
+            speakText(currentWord.example);
+        });
+
+        // 初始化应用
+        initApp();
+    </script>
+</body>
+</html>
